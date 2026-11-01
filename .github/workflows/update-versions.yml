@@ -1,0 +1,59 @@
+name: Update versions
+
+# Each week, moves gradle.properties to the latest releases and opens a pull request, whose CI
+# builds every brand. The repository has to allow Actions to create pull requests, and CI of a
+# pull request from this token starts when someone closes and reopens it.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Move the versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          setting() {
+            sed -n "s/^$1=//p" gradle.properties
+          }
+          tokens="$(gh release view --repo "$(setting CHASSIS_TOKENS_REPOSITORY)" --json tagName --jq .tagName)"
+          tokens="${tokens#v}"
+          assets="$(gh release view --repo "$(setting CHASSIS_ASSETS_REPOSITORY)" --json tagName --jq .tagName)"
+          assets="${assets#v}"
+          sed -i "s/^CHASSIS_TOKENS_VERSION=.*/CHASSIS_TOKENS_VERSION=$tokens/" gradle.properties
+          sed -i "s/^CHASSIS_ASSETS_VERSION=.*/CHASSIS_ASSETS_VERSION=$assets/" gradle.properties
+          echo "tokens=$tokens" >>"$GITHUB_OUTPUT"
+          echo "assets=$assets" >>"$GITHUB_OUTPUT"
+
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOKENS: ${{ steps.versions.outputs.tokens }}
+          ASSETS: ${{ steps.versions.outputs.assets }}
+        run: |
+          if git diff --quiet gradle.properties; then
+            echo "Already on the latest versions."
+            exit 0
+          fi
+          branch="update-versions/tokens-$TOKENS-assets-$ASSETS"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "$branch exists already."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git commit -am "chore: tokens $TOKENS and assets $ASSETS"
+          git push origin "$branch"
+          gh pr create --fill --body "Moves \`gradle.properties\` to tokens $TOKENS and assets $ASSETS. Check each brand on an emulator before merging."

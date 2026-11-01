@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the window shows before the first frame, on the page color of the tokens. -->
+    <style name="Theme.Chassis" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/color_context_default_bg_even</item>
+    </style>
+</resources>
