@@ -48,8 +48,8 @@ brands that exist.
 Change the version in `gradle.properties` and build. That line is the whole change:
 
 ```properties
-CHASSIS_TOKENS_VERSION=0.2.0
-CHASSIS_ASSETS_VERSION=0.4.0
+CHASSIS_TOKENS_VERSION=0.3.0
+CHASSIS_ASSETS_VERSION=0.5.0
 ```
 
 A token, an icon or an image that was renamed or removed then fails to compile, and shows you what
