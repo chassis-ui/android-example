@@ -3,12 +3,14 @@
 A Jetpack Compose app that shows how to use Chassis UI in an Android project. It is the Android
 version of [`chassis-ui/ios-example`](https://github.com/chassis-ui/ios-example), an example to read
 and copy from, and it is not published. Its colors, type, spacing, motion, fonts, icons and images all come
-from two versioned releases, and one build setting chooses the brand:
+from three versioned releases, and one build setting chooses the brand:
 
 - [`chassis-ui/website-tokens`](https://github.com/chassis-ui/website-tokens/releases): the Android
   archive of the `demo` app, with its resources.
 - [`chassis-ui/website-assets`](https://github.com/chassis-ui/website-assets/releases): the Android
-  archive of the `demo` app, with its fonts, icons, images and app icon.
+  archive of the `demo` app, with its fonts, images and app icon.
+- [`chassis-ui/website-icons`](https://github.com/chassis-ui/website-icons/releases): the Android
+  archive of the icons, one for every brand.
 
 ## Run it
 
@@ -21,9 +23,10 @@ to a token for the build to send.
 ./gradlew :app:installDebug
 ```
 
-The first build downloads the tokens and the assets of the brand, and makes `Generated/res` from
-them. Neither that folder nor the downloads in `.cache/` are committed. Gradle installs Android 37
-into the SDK if it is missing, as Compose compiles against it. The app runs from Android 8.
+The first build downloads the tokens and the assets of the brand and the icons, and makes
+`Generated/res` from them. Neither that folder nor the downloads in `.cache/` are committed. Gradle
+installs Android 37 into the SDK if it is missing, as Compose compiles against it. The app runs from
+Android 8.
 
 ## Switch the brand
 
@@ -50,6 +53,7 @@ Change the version in `gradle.properties` and build. That line is the whole chan
 ```properties
 CHASSIS_TOKENS_VERSION=0.3.0
 CHASSIS_ASSETS_VERSION=0.5.0
+CHASSIS_ICONS_VERSION=0.1.0
 ```
 
 A token, an icon or an image that was renamed or removed then fails to compile, and shows you what
@@ -58,10 +62,10 @@ workflow checks for new releases each week and opens a pull request. The reposit
 Actions to create pull requests, and CI starts on such a pull request when someone closes and
 reopens it.
 
-## Use your own tokens and assets
+## Use your own tokens, assets and icons
 
-Where the tokens and the assets come from is set in `gradle.properties` too, and a change to any of
-these settings replaces `Generated/` on the next build:
+Where the tokens, the assets and the icons come from is set in `gradle.properties` too, and a
+change to any of these settings replaces `Generated/` on the next build:
 
 | Setting                     | What it names                                                     |
 | --------------------------- | ----------------------------------------------------------------- |
@@ -70,6 +74,8 @@ these settings replaces `Generated/` on the next build:
 | `CHASSIS_TOKENS_ARCHIVE`    | The name of the tokens archive of a brand on that release         |
 | `CHASSIS_ASSETS_REPOSITORY` | The GitHub `team/repo` of the assets, with a release `v<version>` |
 | `CHASSIS_ASSETS_ARCHIVE`    | The name of the assets archive of a brand on that release         |
+| `CHASSIS_ICONS_REPOSITORY`  | The GitHub `team/repo` of the icons, with a release `v<version>`  |
+| `CHASSIS_ICONS_ARCHIVE`     | The name of the icons archive on that release                     |
 
 The archive names are templates of `{app}`, `{brand}` and `{version}`. The resources have to keep
 the names this app reads, such as `color_context_default_fg_main`, and the fonts, the icons, the
@@ -125,14 +131,15 @@ resolved at launch, so a style without a file stops the app at once.
 
 ### Assets
 
-The fonts, the icons, the images and the app icon are in the `res/` folder of the archive, and
-`SyncBrand` copies it over the one of the tokens, so each is a resource under its name. A file that
-both hold comes from the assets. Two files of one name and different extensions fail the build:
+The fonts, the images and the app icon are in the `res/` folder of the assets archive, and the
+icons in the one of the icons archive. `SyncBrand` copies the tokens, then the assets, then the
+icons into one folder, so each is a resource under its name. A file that two archives hold comes
+from the later one. Two files of one name and different extensions fail the build:
 
 | In `Generated/res`                                   | What it is                        |
 | ---------------------------------------------------- | --------------------------------- |
 | `font/ui_normal.ttf`                                 | A font, by role and weight        |
-| `drawable/ic_home_solid.xml`                         | An icon, as a vector drawable     |
+| `drawable/cx_home_solid.xml`                         | An icon, as a vector drawable     |
 | `drawable-nodpi/logo.png`, `drawable-night-nodpi/logo.png` | An image of one size, in both modes |
 | `drawable-xhdpi/platforms.png`                       | An image at one of its densities  |
 | `mipmap-anydpi-v26/app_icon.xml`                     | The adaptive icon of the brand    |

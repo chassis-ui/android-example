@@ -9,7 +9,8 @@ releases, and whose brand is one build setting. It is an example, not a package:
 published, and there are no changesets or releases. `README.md` explains how it works.
 
 Related repositories (separate git projects, under `chassis-ui` on GitHub): `website-tokens`,
-`website-assets`, `assets`, `tokens`. `ios-example` is the same app on the other platform.
+`website-assets`, `website-icons`, `assets`, `tokens`, `icons`. `ios-example` is the same app on the
+other platform.
 
 ## Commands
 

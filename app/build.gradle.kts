@@ -7,7 +7,7 @@ fun setting(name: String) = providers.gradleProperty(name).get()
 
 val brandName = setting("CHASSIS_BRAND")
 
-/** Fills Generated/ with the tokens and the assets of the brand, before anything reads them. */
+/** Fills Generated/ with the tokens, the assets and the icons of the brand, before anything reads them. */
 val syncBrand = tasks.register<SyncBrand>("syncBrand") {
     fun archive(name: String, version: String) = setting(name)
         .replace("{app}", setting("CHASSIS_APP"))
@@ -21,6 +21,9 @@ val syncBrand = tasks.register<SyncBrand>("syncBrand") {
     assetsRepository = setting("CHASSIS_ASSETS_REPOSITORY")
     assetsVersion = setting("CHASSIS_ASSETS_VERSION")
     assetsArchive = archive("CHASSIS_ASSETS_ARCHIVE", setting("CHASSIS_ASSETS_VERSION"))
+    iconsRepository = setting("CHASSIS_ICONS_REPOSITORY")
+    iconsVersion = setting("CHASSIS_ICONS_VERSION")
+    iconsArchive = archive("CHASSIS_ICONS_ARCHIVE", setting("CHASSIS_ICONS_VERSION"))
     gitHubToken = providers.environmentVariable("GH_TOKEN")
     cacheDirectory = rootProject.layout.projectDirectory.dir(".cache")
     outputDirectory = rootProject.layout.projectDirectory.dir("Generated/res")

@@ -19,11 +19,12 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 /**
- * Fills Generated/res with the `res/` folders of the tokens and the assets of one brand, at the
- * versions that gradle.properties pins. Gradle runs it again only when one of those settings changed.
+ * Fills Generated/res with the `res/` folders of the tokens and the assets of one brand, and of the
+ * icons, at the versions that gradle.properties pins. Gradle runs it again only when one of those
+ * settings changed.
  *
  * Every download is checked against the digest GitHub records for it, and kept in .cache/.
- * Nothing is written to Generated/ until both downloads have passed and the brand is known.
+ * Nothing is written to Generated/ until every download has passed and the brand is known.
  */
 @DisableCachingByDefault(because = "The downloads have their own cache")
 abstract class SyncBrand : DefaultTask() {
@@ -34,6 +35,9 @@ abstract class SyncBrand : DefaultTask() {
     @get:Input abstract val assetsRepository: Property<String>
     @get:Input abstract val assetsVersion: Property<String>
     @get:Input abstract val assetsArchive: Property<String>
+    @get:Input abstract val iconsRepository: Property<String>
+    @get:Input abstract val iconsVersion: Property<String>
+    @get:Input abstract val iconsArchive: Property<String>
 
     // Without a token GitHub allows 60 calls an hour per address, which a shared runner can use up
     @get:Internal abstract val gitHubToken: Property<String>
@@ -47,23 +51,27 @@ abstract class SyncBrand : DefaultTask() {
         // On the volume of Generated/, so that moving the result there is one rename
         val work = Files.createTempDirectory(cache.toPath(), "work").toFile()
         try {
-            // Both first: a failed download leaves Generated/ as it is
+            // All first: a failed download leaves Generated/ as it is
             val tokensZip = fetch(tokensRepository.get(), tokensVersion.get(), tokensArchive.get(), cache)
             val assetsZip = fetch(assetsRepository.get(), assetsVersion.get(), assetsArchive.get(), cache)
+            val iconsZip = fetch(iconsRepository.get(), iconsVersion.get(), iconsArchive.get(), cache)
 
             val res = File(work, "res")
-            for (archive in listOf(tokensZip, assetsZip)) {
+            for (archive in listOf(tokensZip, assetsZip, iconsZip)) {
                 val unpacked = File(work, archive.name).also { unzip(archive, it) }
                 val folder = File(unpacked, "res")
                 if (!folder.isDirectory) throw GradleException("${archive.name} has no res/ folder")
-                // The assets come second, so they win over a file that the tokens hold too
+                // A later archive wins over a file that an earlier one holds too
                 folder.copyRecursively(res, overwrite = true)
             }
 
             output.deleteRecursively()
             output.parentFile.mkdirs()
             Files.move(res.toPath(), output.toPath(), StandardCopyOption.ATOMIC_MOVE)
-            logger.lifecycle("Generated/res now holds ${brand.get()}: ${tokensArchive.get()}, ${assetsArchive.get()}")
+            logger.lifecycle(
+                "Generated/res now holds ${brand.get()}: " +
+                    "${tokensArchive.get()}, ${assetsArchive.get()}, ${iconsArchive.get()}",
+            )
         } finally {
             work.deleteRecursively()
         }
